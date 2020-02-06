@@ -1,14 +1,18 @@
 #include "PlayerSpectatorPawnBase.h"
 #include "TaskITM/TaskITM.h"
+#include "PlayerCharacter.h"
+#include "PlayerControllerBase.h"
 
 #include "Engine/CollisionProfile.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/PlayerInput.h"
+#include "Components/DecalComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 
 namespace
 {
@@ -16,6 +20,7 @@ namespace
     static const FName CollisionComponentName(TEXT("CollisionComponent"));
     static const FName SpringArmComponentName(TEXT("SpringArmComponent"));
     static const FName CameraComponentName(TEXT("CameraComponent"));
+    static const FName CursorComponentName(TEXT("CursorComponent"));
     static const FName MovementComponentName(TEXT("MovementComponent"));
     // Moving forward and backward on the X-axis (surge)
     static const FName MovingForwardBackwardName(TEXT("MovingForwardBackward"));
@@ -27,6 +32,9 @@ namespace
     static const FName TiltingForwardBackwardName(TEXT("TiltingForwardBackward"));
     // Turning left and right on the Z-axis (Yaw)
     static const FName TurningLeftRightName(TEXT("TurningLeftRight"));
+    // 
+    static const FName CharacterSelectionButtonName(TEXT("CharacterSelectionButton"));
+    static const FName CharacterActionButtonName(TEXT("CharacterActionButton"));
     // 
     static const FName CombinationForTurnsName(TEXT("CombinationForTurns"));
 }
@@ -41,12 +49,13 @@ APlayerSpectatorPawnBase::APlayerSpectatorPawnBase()
     BaseTurnRate                        = 45.f;
     BaseLookUpRate                      = 45.f;
     MaxLiftHeight                       = 500.f;
+    MinClickDistance                    = 120.f;
     bEnableCombinationToTurn            = false;
     // Collision
     CollisionComponent                  = CreateDefaultSubobject<USphereComponent>(CollisionComponentName);
     CollisionComponent->InitSphereRadius(35.0f);
     CollisionComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
-    CollisionComponent->SetVisibility(false);
+    CollisionComponent->SetVisibility(true);
     RootComponent                       = CollisionComponent;
     // Spring
     SpringArm                           = CreateDefaultSubobject<USpringArmComponent>(SpringArmComponentName);
@@ -61,6 +70,11 @@ APlayerSpectatorPawnBase::APlayerSpectatorPawnBase()
     Camera                              = CreateDefaultSubobject<UCameraComponent>(CameraComponentName);
     Camera->AttachToComponent(SpringArm, FAttachmentTransformRules::KeepRelativeTransform, USpringArmComponent::SocketName);
     Camera->bUsePawnControlRotation     = true;
+    // Deacl
+    Cursor                              = CreateDefaultSubobject<UDecalComponent>(CursorComponentName);
+    Cursor->DecalSize                   = FVector(16.f, 32.f, 32.f);
+    Cursor->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+    Cursor->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
     // Movement
     MovementComponent                   = CreateDefaultSubobject<UPawnMovementComponent, UFloatingPawnMovement>(MovementComponentName);
     MovementComponent->UpdatedComponent = CollisionComponent;
@@ -72,6 +86,12 @@ void APlayerSpectatorPawnBase::SetupPlayerInputComponent(UInputComponent* Player
     //
     PlayerInputComponent->BindAction(CombinationForTurnsName, EInputEvent::IE_Pressed, this, &APlayerSpectatorPawnBase::EnableCombinationToTurns);
     PlayerInputComponent->BindAction(CombinationForTurnsName, EInputEvent::IE_Released, this, &APlayerSpectatorPawnBase::DisableCombinationToTurns);
+    //
+    PlayerInputComponent->BindAction(CharacterSelectionButtonName, EInputEvent::IE_Pressed, this, &APlayerSpectatorPawnBase::CharacterSelectionButtonPressed);
+    PlayerInputComponent->BindAction(CharacterSelectionButtonName, EInputEvent::IE_Released, this, &APlayerSpectatorPawnBase::CharacterSelectionButtonReleased);
+    //
+    PlayerInputComponent->BindAction(CharacterActionButtonName, EInputEvent::IE_Pressed, this, &APlayerSpectatorPawnBase::CharacterActionButtonPressed);
+    PlayerInputComponent->BindAction(CharacterActionButtonName, EInputEvent::IE_Released, this, &APlayerSpectatorPawnBase::CharacterActionButtonReleased);
     // Binds translational envelopes
     PlayerInputComponent->BindAxis(MovingForwardBackwardName,   this, &APlayerSpectatorPawnBase::MovingForwardBackward);
     PlayerInputComponent->BindAxis(MovingLeftRightName,         this, &APlayerSpectatorPawnBase::MovingLeftRight);
@@ -88,6 +108,21 @@ void APlayerSpectatorPawnBase::BeginPlay()
     DefaultHeight = GetActorLocation().Z;
 }
 
+void APlayerSpectatorPawnBase::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    APlayerControllerBase* PlayerSpectatorController = Cast<APlayerControllerBase>(Controller);
+    if (IsValid(PlayerSpectatorController)) {
+        FHitResult Hit;
+        PlayerSpectatorController->GetHitResultUnderCursorByChannel((ETraceTypeQuery)ECollisionChannel::ECC_Visibility, true, Hit);
+        Cursor->SetVisibility(Hit.bBlockingHit && !bEnableCombinationToTurn);
+        if (Hit.bBlockingHit && !bEnableCombinationToTurn) {
+            Cursor->SetWorldLocationAndRotation(Hit.Location, Hit.ImpactNormal.ToOrientationQuat());
+        }
+    }
+}
+
 void APlayerSpectatorPawnBase::EnableCombinationToTurns()
 {
     bEnableCombinationToTurn = true;
@@ -96,6 +131,44 @@ void APlayerSpectatorPawnBase::EnableCombinationToTurns()
 void APlayerSpectatorPawnBase::DisableCombinationToTurns()
 {
     bEnableCombinationToTurn = false;
+}
+
+void APlayerSpectatorPawnBase::CharacterSelectionButtonPressed()
+{
+    APlayerControllerBase* PlayerSpectatorController = Cast<APlayerControllerBase>(Controller);
+    if (IsValid(PlayerSpectatorController)) {
+        FHitResult Hit;
+        PlayerSpectatorController->GetHitResultUnderCursorByChannel((ETraceTypeQuery)ECollisionChannel::ECC_Visibility, true, Hit);
+        if (Hit.bBlockingHit) {
+            APlayerCharacterBase* PlayerCharacter = Cast<APlayerCharacterBase>(Hit.Actor);
+            SetCharacterSelection(PlayerCharacter);
+        }
+    }
+}
+
+void APlayerSpectatorPawnBase::CharacterSelectionButtonReleased()
+{
+}
+
+void APlayerSpectatorPawnBase::CharacterActionButtonPressed()
+{
+    if (CharacterSelection.IsValid()) {
+        APlayerControllerBase* PlayerSpectatorController = Cast<APlayerControllerBase>(Controller);
+        if (IsValid(PlayerSpectatorController)) {
+            FHitResult Hit;
+            PlayerSpectatorController->GetHitResultUnderCursorByChannel((ETraceTypeQuery)ECollisionChannel::ECC_Visibility, true, Hit);
+            if (Hit.bBlockingHit) {
+                if ((CharacterSelection->GetActorLocation() - Hit.Location).SizeSquared() > MinClickDistance * MinClickDistance) {
+                    UAIBlueprintHelperLibrary::SimpleMoveToLocation(CharacterSelection->GetController(), Hit.Location);
+                }
+            }
+        }
+    }
+}
+
+void APlayerSpectatorPawnBase::CharacterActionButtonReleased()
+{
+
 }
 
 void APlayerSpectatorPawnBase::MovingForwardBackward(float Value)
@@ -119,10 +192,25 @@ void APlayerSpectatorPawnBase::MovingLeftRight(float Value)
 
 void APlayerSpectatorPawnBase::MovingUpDown(float Value)
 {
-    if (!FMath::IsNearlyZero(Value)) {
-        FVector Location = GetActorLocation();
-        Location.Z = FMath::Clamp(Location.Z + Value, DefaultHeight, DefaultHeight + MaxLiftHeight);
-        SetActorLocation(Location);
+    if (!FMath::IsNearlyZero(Value) && IsValid(Controller)) {
+        FVector SpectatorLocation   = GetActorLocation();
+        FRotator ControlSpaceRot    = Controller->GetControlRotation();
+        FVector ForwardVector       = FRotationMatrix(ControlSpaceRot).GetScaledAxis(EAxis::X);
+        float VerticalOffset        = FVector::DotProduct(ForwardVector * Value, FVector::UpVector);
+        // Clamp bottom plane
+        if (VerticalOffset > 0) {
+            float DistanceToPlane = FVector::DotProduct(SpectatorLocation - FVector(SpectatorLocation.X, SpectatorLocation.Y, DefaultHeight), FVector::UpVector);
+            if (DistanceToPlane - VerticalOffset > 0.f) {
+                SetActorLocation(SpectatorLocation - ForwardVector * Value);
+            }
+        }
+        // Clamp top plane
+        else {
+            float DistanceToPlane = FVector::DotProduct(SpectatorLocation - FVector(SpectatorLocation.X, SpectatorLocation.Y, DefaultHeight + MaxLiftHeight), FVector::DownVector);
+            if (DistanceToPlane - VerticalOffset > 0.f) {
+                SetActorLocation(SpectatorLocation - ForwardVector * Value);
+            }
+        }
     }
 }
 
@@ -139,5 +227,17 @@ void APlayerSpectatorPawnBase::TurningLeftRight(float Value)
     if (bEnableCombinationToTurn && !FMath::IsNearlyZero(Value)) {
         // Calculate delta for this frame from the rate information
         AddControllerYawInput(Value * BaseTurnRate * GetWorld()->GetDeltaSeconds() * CustomTimeDilation);
+    }
+}
+
+void APlayerSpectatorPawnBase::SetCharacterSelection(APlayerCharacterBase* NewCharacterSelection)
+{
+    if (CharacterSelection.IsValid()) {
+        CharacterSelection->SetCharacterSelection(false);
+        CharacterSelection.Reset();
+    }
+    if (IsValid(NewCharacterSelection)) {
+        NewCharacterSelection->SetCharacterSelection(true);
+        CharacterSelection = NewCharacterSelection;
     }
 }
