@@ -22,8 +22,10 @@ class APlayerSpectatorPawnBase : public APawn
 public:
 
 	                                APlayerSpectatorPawnBase();
-    /// Override
-    virtual void                    SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+    /// Functions
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void                            DisplayTargetOfMovement(const FVector& LocationTarget);
+    virtual void                    DisplayTargetOfMovement_Implementation(const FVector& LocationTarget);
     /// Variables
     // Base turn rate, in deg/sec. Other scaling may affect final turn rate
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -40,6 +42,7 @@ protected:
     /// Override
     virtual void                    BeginPlay() override;
     virtual void                    Tick(float DeltaSeconds) override;
+    virtual void                    SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
     /// Functions
 
     //

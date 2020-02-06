@@ -80,6 +80,10 @@ APlayerSpectatorPawnBase::APlayerSpectatorPawnBase()
     MovementComponent->UpdatedComponent = CollisionComponent;
 }
 
+void APlayerSpectatorPawnBase::DisplayTargetOfMovement_Implementation(const FVector& LocationTarget)
+{
+}
+
 void APlayerSpectatorPawnBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     check(PlayerInputComponent);
@@ -158,6 +162,7 @@ void APlayerSpectatorPawnBase::CharacterActionButtonPressed()
             FHitResult Hit;
             PlayerSpectatorController->GetHitResultUnderCursorByChannel((ETraceTypeQuery)ECollisionChannel::ECC_Visibility, true, Hit);
             if (Hit.bBlockingHit) {
+                DisplayTargetOfMovement(Hit.Location);
                 if ((CharacterSelection->GetActorLocation() - Hit.Location).SizeSquared() > MinClickDistance * MinClickDistance) {
                     UAIBlueprintHelperLibrary::SimpleMoveToLocation(CharacterSelection->GetController(), Hit.Location);
                 }
