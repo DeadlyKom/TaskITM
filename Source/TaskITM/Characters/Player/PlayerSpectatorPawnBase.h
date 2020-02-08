@@ -28,14 +28,14 @@ public:
     virtual void                    DisplayTargetOfMovement_Implementation(const FVector& LocationTarget);
     /// Variables
     // Base turn rate, in deg/sec. Other scaling may affect final turn rate
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     float                           BaseTurnRate;
     // Base lookup rate, in deg/sec. Other scaling may affect final lookup rate
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     float                           BaseLookUpRate;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     float                           MaxLiftHeight;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     float                           MinClickDistance;
 
 protected:

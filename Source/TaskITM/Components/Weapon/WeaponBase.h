@@ -1,0 +1,44 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "WeaponBase.generated.h"
+
+class USceneComponent;
+
+UCLASS()
+class AWeaponBase : public AActor
+{
+    GENERATED_BODY()
+public:
+                            AWeaponBase();
+
+    /// Functions
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void                    Initialize();
+    virtual void            Initialize_Implementation();
+    UFUNCTION(BlueprintCallable)
+    virtual void            StartAttack();
+    UFUNCTION(BlueprintCallable)
+    virtual void            EndAttack();
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void                    OnAttack(bool bEnable);
+    virtual void            OnAttack_Implementation(bool bEnable);
+    UFUNCTION(BlueprintPure)
+    virtual bool            IsAttack() const;
+    virtual void            OnTimerWeapon();
+    void                    PauseTimerWeapon(bool bEnable);
+    /// Variables
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    float                   Range;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    FName                   WeaponID;
+
+protected:
+    /// Functions
+    virtual void            StartTimer(float InFirstDelay = -1.f) {}
+    virtual void            EndTimer() {}
+    /// Variables
+    uint8                   bNeedAttack : 1;
+    FTimerHandle            TimerHandler;
+};
