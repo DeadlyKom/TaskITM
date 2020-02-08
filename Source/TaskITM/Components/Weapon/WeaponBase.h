@@ -14,14 +14,14 @@ public:
                             AWeaponBase();
 
     /// Functions
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     void                    Initialize();
     virtual void            Initialize_Implementation();
     UFUNCTION(BlueprintCallable)
     virtual void            StartAttack();
     UFUNCTION(BlueprintCallable)
     virtual void            EndAttack();
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     void                    OnAttack(bool bEnable);
     virtual void            OnAttack_Implementation(bool bEnable);
     UFUNCTION(BlueprintPure)
@@ -40,5 +40,6 @@ protected:
     virtual void            EndTimer() {}
     /// Variables
     uint8                   bNeedAttack : 1;
+    uint8                   bNeedReload : 1;
     FTimerHandle            TimerHandler;
 };

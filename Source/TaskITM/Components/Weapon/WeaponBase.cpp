@@ -9,6 +9,7 @@ AWeaponBase::AWeaponBase()
 {
     // Default settings
     bNeedAttack = false;
+    bNeedReload = false;
 }
 
 void AWeaponBase::Initialize_Implementation()
@@ -16,7 +17,7 @@ void AWeaponBase::Initialize_Implementation()
 
 void AWeaponBase::StartAttack()
 {
-    if (!IsAttack()) { StartTimer(0.f); }
+    if (!IsAttack() && !bNeedReload) { StartTimer(0.f); }
     bNeedAttack     = true;
 }
 
@@ -30,7 +31,7 @@ void AWeaponBase::OnAttack_Implementation(bool bEnable)
 
 bool AWeaponBase::IsAttack() const
 {
-    return IsValid(GetWorld()) ? GetWorld()->GetTimerManager().TimerExists(TimerHandler) : false;
+    return IsValid(GetWorld()) ? GetWorld()->GetTimerManager().TimerExists(TimerHandler) && !bNeedReload : false;
 }
 
 void AWeaponBase::OnTimerWeapon()

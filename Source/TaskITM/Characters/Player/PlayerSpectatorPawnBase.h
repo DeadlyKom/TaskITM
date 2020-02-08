@@ -23,7 +23,7 @@ public:
 
 	                                APlayerSpectatorPawnBase();
     /// Functions
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     void                            DisplayTargetOfMovement(const FVector& LocationTarget);
     virtual void                    DisplayTargetOfMovement_Implementation(const FVector& LocationTarget);
     /// Variables

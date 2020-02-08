@@ -11,10 +11,10 @@ class APlayerCharacterBase : public ACharacterBase
 public:
                                     APlayerCharacterBase();
     /// Functions
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     void                            SetCharacterSelection(bool bEnable);
     virtual void                    SetCharacterSelection_Implementation(bool bEnable);
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     void                            TurnWeaponToNearTarget(AActor* NearTarget);
     virtual void                    TurnWeaponToNearTarget_Implementation(AActor* NearTarget);
 

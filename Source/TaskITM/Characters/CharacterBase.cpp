@@ -1,6 +1,7 @@
 #include "CharacterBase.h"
 #include "TaskITM/TaskITM.h"
 #include "TaskITM/Components/Weapon/WeaponBase.h"
+#include "TaskITM/Components/Resources/ResourceHealth.h"
 
 #include "TimerManager.h"
 #include "Engine/World.h"
@@ -8,9 +9,30 @@
 #include "Components/ChildActorComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+namespace
+{
+    static const FName ResourceHealthComponentName(TEXT("ResourceHealth"));
+}
+
 ACharacterBase::ACharacterBase()
     : Super()
 {
+    // Default setting
+    ResourceHealth = CreateDefaultSubobject<UResourceHealth>(ResourceHealthComponentName);
+}
+
+UResourceHealth* ACharacterBase::GetResourceHealth_Implementation() const
+{
+    return ResourceHealth;
+}
+
+AWeaponBase* ACharacterBase::GetWeapon_Implementation(FName NameWeapon) const
+{
+    auto* FoundWeapon = Weapons.Find(NameWeapon);
+    if (FoundWeapon != nullptr && FoundWeapon->IsValid()) {
+        return Cast<AWeaponBase>(FoundWeapon->Get()->GetChildActor());
+    }
+    return nullptr;
 }
 
 //#include "Runtime/Engine/Public/DrawDebugHelpers.h"
@@ -43,6 +65,11 @@ ACharacterBase* ACharacterBase::SearchNearestCharacter(TSubclassOf<ACharacterBas
     return NearestCharacter.Get();
 }
 
+ACharacterBase* ACharacterBase::GetNearestCharacter() const
+{
+    return NearestCharacter.Get();
+}
+
 void ACharacterBase::SetNewWeapon_Implementation(UChildActorComponent* ChildActorComponent, TSubclassOf<AWeaponBase> NewWeaponClass)
 {
     if (IsValid(ChildActorComponent)) {
@@ -54,4 +81,33 @@ void ACharacterBase::SetNewWeapon_Implementation(UChildActorComponent* ChildActo
             Weapon->Initialize();
         }
     }
+}
+
+void ACharacterBase::PreDestroy_Implementation()
+{
+    Destroy();
+}
+
+void ACharacterBase::BeginPlay()
+{
+    Super::BeginPlay();
+    OnTakeAnyDamage.AddDynamic(this, &ACharacterBase::OnTakeAnyDamageEvent);
+    ResourceHealth->GetResourceMinValueHit().AddDynamic(this, &ACharacterBase::OnResourceMinValueHitEvent);
+}
+
+void ACharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+    OnTakeAnyDamage.RemoveDynamic(this, &ACharacterBase::OnTakeAnyDamageEvent);
+    ResourceHealth->GetResourceMinValueHit().RemoveDynamic(this, &ACharacterBase::OnResourceMinValueHitEvent);
+}
+
+void ACharacterBase::OnResourceMinValueHitEvent_Implementation()
+{
+    PreDestroy();
+}
+
+void ACharacterBase::OnTakeAnyDamageEvent_Implementation(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
+{
+    ResourceHealth->Waste(Damage);
 }
