@@ -28,6 +28,8 @@ public:
     float                   EnergyElementSize;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     float                   ReloadTime;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    float                   TimeStep;
 
 protected:
     /// Override functions

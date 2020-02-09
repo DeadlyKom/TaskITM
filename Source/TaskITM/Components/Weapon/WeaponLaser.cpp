@@ -10,6 +10,8 @@
 AWeaponLaser::AWeaponLaser()
     : Super()
 {
+    // Default setting
+    TimeStep = 0.1f;
 }
 
 void AWeaponLaser::OnTimerWeapon()
@@ -20,7 +22,7 @@ void AWeaponLaser::OnTimerWeapon()
         if (IsValid(NearestCharacter) && NearestCharacter->GetClass()->ImplementsInterface(UCharacterBaseClass::StaticClass())) {
             UResourceHealth* ResourceHealth = ICharacterBaseClass::Execute_GetResourceHealth(NearestCharacter);
             if (IsValid(ResourceHealth)) {
-                ResourceHealth->Waste(DamagePerSecond);
+                ResourceHealth->Waste(DamagePerSecond * TimeStep);
             }
             if (NearestCharacter->bCallPreDestroy) {
                 EndAttack();
@@ -28,7 +30,7 @@ void AWeaponLaser::OnTimerWeapon()
         }
     }
 
-    EnergyElement -= WastEnergyPerSecond;
+    EnergyElement -= WastEnergyPerSecond * TimeStep;
 
     if (EnergyElement <= 0) {
         EndTimer();
@@ -64,7 +66,7 @@ void AWeaponLaser::ActivateLaser_Implementation()
     UWorld* World = GetWorld();
     if (IsValid(World)) {
         FTimerManager& TimeManager = World->GetTimerManager();
-        TimeManager.SetTimer(TimerHandler, this, &AWeaponBase::OnTimerWeapon, 1.f, true);
+        TimeManager.SetTimer(TimerHandler, this, &AWeaponBase::OnTimerWeapon, TimeStep, true);
     }
 }
 
