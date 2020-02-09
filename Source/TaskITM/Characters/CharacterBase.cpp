@@ -53,13 +53,21 @@ ACharacterBase* ACharacterBase::SearchNearestCharacter(TSubclassOf<ACharacterBas
                     FHitResult Hit;
                     FCollisionQueryParams QueryParams;
                     QueryParams.AddIgnoredActor(this);
+                    for (const auto& Weapon : Weapons) { QueryParams.AddIgnoredActor(Weapon.Value->GetChildActor()); }
                     QueryParams.bTraceComplex           = true;
                     QueryParams.bReturnPhysicalMaterial = false;
                     QueryParams.bReturnFaceIndex        = false;
                     if (World->LineTraceSingleByChannel(Hit, Location, LocationCharacter, ECollisionChannel::ECC_Visibility, QueryParams)) {
                         //DrawDebugLine(World, Location, LocationCharacter, FColor::Red, false, -1.f, 0, 3.f);
-                        SquareDistanceMin = SquareDistance;
-                        NearestCharacter        = *It;
+                        if (Hit.Actor->IsA(Class)) {
+                            SquareDistanceMin = SquareDistance;
+                            NearestCharacter        = *It;
+                        }
+                        AActor* ActorOwner = Hit.Actor->GetOwner();
+                        if (IsValid(ActorOwner) && ActorOwner->IsA(Class)) {
+                            SquareDistanceMin = SquareDistance;
+                            NearestCharacter = *It;
+                        }
                     }
                 }
             }

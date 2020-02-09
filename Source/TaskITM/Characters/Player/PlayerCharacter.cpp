@@ -18,6 +18,6 @@ void APlayerCharacterBase::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    ACharacterBase* CharacterEnemy = SearchNearestCharacter(AAICharacterBase::StaticClass());
-    TurnWeaponToNearTarget(CharacterEnemy);
+    SearchNearestCharacter(AAICharacterBase::StaticClass());
+    TurnWeaponToNearTarget(NearestCharacter.Get());
 }
