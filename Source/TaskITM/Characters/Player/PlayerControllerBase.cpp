@@ -3,6 +3,4 @@
 
 APlayerControllerBase::APlayerControllerBase()
     : Super()
-{
-
-}
+{}

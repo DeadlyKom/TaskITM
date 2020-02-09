@@ -3,6 +3,4 @@
 
 AAIControllerBase::AAIControllerBase()
     : Super()
-{
-
-}
+{}

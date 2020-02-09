@@ -53,7 +53,7 @@ ACharacterBase* ACharacterBase::SearchNearestCharacter(TSubclassOf<ACharacterBas
                     FHitResult Hit;
                     FCollisionQueryParams QueryParams;
                     QueryParams.AddIgnoredActor(this);
-                    for (const auto& Weapon : Weapons) { QueryParams.AddIgnoredActor(Weapon.Value->GetChildActor()); }
+                    for (const auto& Weapon : Weapons) { if (Weapon.Value.IsValid()) { QueryParams.AddIgnoredActor(Weapon.Value->GetChildActor()); } }
                     QueryParams.bTraceComplex           = true;
                     QueryParams.bReturnPhysicalMaterial = false;
                     QueryParams.bReturnFaceIndex        = false;

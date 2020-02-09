@@ -10,4 +10,11 @@ class AAICharacterBase : public ACharacterBase
     GENERATED_BODY()
 public:
                                     AAICharacterBase();
+    /// Functions
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    void                            TurnWeaponToNearTarget(AActor* NearTarget);
+    virtual void                    TurnWeaponToNearTarget_Implementation(AActor* NearTarget);
+protected:
+    /// Override functions
+    virtual void                    Tick(float DeltaSeconds) override;
 };

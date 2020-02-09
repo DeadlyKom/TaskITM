@@ -4,9 +4,7 @@
 
 APlayerCharacterBase::APlayerCharacterBase()
     : Super()
-{
-
-}
+{}
 
 void APlayerCharacterBase::SetCharacterSelection_Implementation(bool bEnable)
 {}
