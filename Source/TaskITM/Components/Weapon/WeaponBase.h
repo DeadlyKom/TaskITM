@@ -17,6 +17,9 @@ public:
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     void                    Initialize();
     virtual void            Initialize_Implementation();
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    void                    PreDestroy();
+    virtual void            PreDestroy_Implementation();
     UFUNCTION(BlueprintCallable)
     virtual void            StartAttack();
     UFUNCTION(BlueprintCallable)

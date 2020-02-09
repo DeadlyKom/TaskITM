@@ -37,6 +37,8 @@ public:
     /// Variables
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     float                           VisionRange;
+    UPROPERTY(BlueprintReadOnly)
+    uint8                           bCallPreDestroy : 1;
 
 protected:
     /// Override functions

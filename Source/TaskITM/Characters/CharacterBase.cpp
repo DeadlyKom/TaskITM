@@ -18,7 +18,8 @@ ACharacterBase::ACharacterBase()
     : Super()
 {
     // Default setting
-    ResourceHealth = CreateDefaultSubobject<UResourceHealth>(ResourceHealthComponentName);
+    bCallPreDestroy = false;
+    ResourceHealth  = CreateDefaultSubobject<UResourceHealth>(ResourceHealthComponentName);
 }
 
 UResourceHealth* ACharacterBase::GetResourceHealth_Implementation() const
@@ -45,19 +46,21 @@ ACharacterBase* ACharacterBase::SearchNearestCharacter(TSubclassOf<ACharacterBas
         float SquareDistanceMin = VisionRange * VisionRange;
         FVector Location        = GetActorLocation();
         for (TActorIterator<ACharacterBase> It(World, Class); It; ++It) {
-            FVector LocationCharacter   = It->GetActorLocation();
-            float SquareDistance        = (Location - LocationCharacter).SizeSquared();
-            if (SquareDistance <= SquareDistanceMin/* && It->WasRecentlyRendered(0.f)*/) {
-                FHitResult Hit;
-                FCollisionQueryParams QueryParams;
-                QueryParams.AddIgnoredActor(this);
-                QueryParams.bTraceComplex           = true;
-                QueryParams.bReturnPhysicalMaterial = false;
-                QueryParams.bReturnFaceIndex        = false;
-                if (World->LineTraceSingleByChannel(Hit, Location, LocationCharacter, ECollisionChannel::ECC_Visibility, QueryParams)) {
-                    //DrawDebugLine(World, Location, LocationCharacter, FColor::Red, false, -1.f, 0, 3.f);
-                    SquareDistanceMin = SquareDistance;
-                    NearestCharacter        = *It;
+            if (IsValid(*It) && !It->bCallPreDestroy) {
+                FVector LocationCharacter   = It->GetActorLocation();
+                float SquareDistance        = (Location - LocationCharacter).SizeSquared();
+                if (SquareDistance <= SquareDistanceMin /* && It->WasRecentlyRendered(0.f)*/) {
+                    FHitResult Hit;
+                    FCollisionQueryParams QueryParams;
+                    QueryParams.AddIgnoredActor(this);
+                    QueryParams.bTraceComplex           = true;
+                    QueryParams.bReturnPhysicalMaterial = false;
+                    QueryParams.bReturnFaceIndex        = false;
+                    if (World->LineTraceSingleByChannel(Hit, Location, LocationCharacter, ECollisionChannel::ECC_Visibility, QueryParams)) {
+                        //DrawDebugLine(World, Location, LocationCharacter, FColor::Red, false, -1.f, 0, 3.f);
+                        SquareDistanceMin = SquareDistance;
+                        NearestCharacter        = *It;
+                    }
                 }
             }
         }
@@ -104,7 +107,10 @@ void ACharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ACharacterBase::OnResourceMinValueHitEvent_Implementation()
 {
-    PreDestroy();
+    if (!bCallPreDestroy) {
+        bCallPreDestroy = true;
+        PreDestroy();
+    }
 }
 
 void ACharacterBase::OnTakeAnyDamageEvent_Implementation(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)

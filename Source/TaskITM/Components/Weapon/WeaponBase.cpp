@@ -1,5 +1,6 @@
 #include "WeaponBase.h"
 #include "TaskITM/TaskITM.h"
+#include "TaskITM/Characters/CharacterBase.h"
 
 #include "TimerManager.h"
 #include "Engine/World.h"
@@ -15,10 +16,25 @@ AWeaponBase::AWeaponBase()
 void AWeaponBase::Initialize_Implementation()
 {}
 
+void AWeaponBase::PreDestroy_Implementation()
+{}
+
 void AWeaponBase::StartAttack()
 {
-    if (!IsAttack() && !bNeedReload) { StartTimer(0.f); }
-    bNeedAttack     = true;
+    ACharacterBase* CharacterBase = Cast<ACharacterBase>(GetOwner());
+    if (IsValid(CharacterBase)) {
+        ACharacterBase* NearestCharacter = CharacterBase->GetNearestCharacter();
+        if (IsValid(NearestCharacter) && !NearestCharacter->bCallPreDestroy) {
+            NearestCharacter->GetActorLocation();
+            float SquareDistance = (NearestCharacter->GetActorLocation() - CharacterBase->GetActorLocation()).SizeSquared();
+            if (SquareDistance <= Range * Range) {
+                if (!IsAttack() && !bNeedReload) { StartTimer(0.f); }
+                bNeedAttack = true;
+                return;
+            }
+        }
+    }
+    EndAttack();
 }
 
 void AWeaponBase::EndAttack()

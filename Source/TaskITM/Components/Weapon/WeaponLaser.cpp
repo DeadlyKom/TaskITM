@@ -14,6 +14,20 @@ AWeaponLaser::AWeaponLaser()
 
 void AWeaponLaser::OnTimerWeapon()
 {
+    ACharacterBase* CharacterBase = Cast<ACharacterBase>(GetOwner());
+    if (IsValid(CharacterBase)) {
+        ACharacterBase* NearestCharacter = CharacterBase->GetNearestCharacter();
+        if (IsValid(NearestCharacter) && NearestCharacter->GetClass()->ImplementsInterface(UCharacterBaseClass::StaticClass())) {
+            UResourceHealth* ResourceHealth = ICharacterBaseClass::Execute_GetResourceHealth(NearestCharacter);
+            if (IsValid(ResourceHealth)) {
+                ResourceHealth->Waste(DamagePerSecond);
+            }
+            if (NearestCharacter->bCallPreDestroy) {
+                EndAttack();
+            }
+        }
+    }
+
     EnergyElement -= WastEnergyPerSecond;
 
     if (EnergyElement <= 0) {
@@ -28,17 +42,6 @@ void AWeaponLaser::OnTimerWeapon()
         EndTimer();
         OnAttack(false);
         return;
-    }
-
-    ACharacterBase* CharacterBase = Cast<ACharacterBase>(GetOwner());
-    if (IsValid(CharacterBase)) {
-        ACharacterBase* NearestCharacter = CharacterBase->GetNearestCharacter();
-        if (NearestCharacter->GetClass()->ImplementsInterface(UCharacterBaseClass::StaticClass())) {
-            UResourceHealth* ResourceHealth = ICharacterBaseClass::Execute_GetResourceHealth(NearestCharacter);
-            if (IsValid(ResourceHealth)) {
-                ResourceHealth->Waste(DamagePerSecond);
-            }
-        }
     }
 }
 
