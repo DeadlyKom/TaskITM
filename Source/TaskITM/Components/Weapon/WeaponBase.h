@@ -42,7 +42,9 @@ protected:
     virtual void            StartTimer(float InFirstDelay = -1.f) {}
     virtual void            EndTimer() {}
     /// Variables
+    UPROPERTY(BlueprintReadOnly)
     uint8                   bNeedAttack : 1;
+    UPROPERTY(BlueprintReadOnly)
     uint8                   bNeedReload : 1;
     FTimerHandle            TimerHandler;
 };

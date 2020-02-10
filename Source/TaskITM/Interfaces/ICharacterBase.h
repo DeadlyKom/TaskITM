@@ -19,4 +19,6 @@ public:
     class UResourceHealth*          GetResourceHealth() const;
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     class AWeaponBase*              GetWeapon(FName NameWeapon) const;
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    TArray<class AWeaponBase*>      GetWeapons() const;
 };

@@ -39,4 +39,6 @@ protected:
     /// Variables
     UPROPERTY(BlueprintReadOnly)
     float                   EnergyElement;
+    UPROPERTY(BlueprintReadWrite)
+    float                   EnergyElementReloadTime;
 };

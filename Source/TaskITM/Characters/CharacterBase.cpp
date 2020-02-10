@@ -36,6 +36,17 @@ AWeaponBase* ACharacterBase::GetWeapon_Implementation(FName NameWeapon) const
     return nullptr;
 }
 
+TArray<AWeaponBase*> ACharacterBase::GetWeapons_Implementation() const
+{
+    TArray<AWeaponBase*> ResultWeapons;
+    for (auto& Weapon : Weapons) {
+        if (Weapon.Value.IsValid()) {
+            ResultWeapons.Add(Cast<AWeaponBase>(Weapon.Value->GetChildActor()));
+        }
+    }
+    return ResultWeapons;
+}
+
 //#include "Runtime/Engine/Public/DrawDebugHelpers.h"
 
 ACharacterBase* ACharacterBase::SearchNearestCharacter(TSubclassOf<ACharacterBase> Class)

@@ -23,6 +23,9 @@ public:
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     AWeaponBase*                    GetWeapon(FName NameWeapon) const;
     virtual AWeaponBase*            GetWeapon_Implementation(FName NameWeapon) const override;
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    TArray<AWeaponBase*>            GetWeapons() const;
+    virtual TArray<AWeaponBase*>    GetWeapons_Implementation() const override;
     /// Functions
     UFUNCTION(BlueprintCallable)
     ACharacterBase*                 SearchNearestCharacter(TSubclassOf<ACharacterBase> Class);
